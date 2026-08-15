@@ -24,6 +24,7 @@ esp-idf-svc = { version = "0.52.1", features = ["critical-section", "embassy-tim
 embassy-time = { version = "0.5", features = ["generic-queue-8"] }
 anyhow = "1.0.104"
 embedded-hal = "1.0.0"
+esp32-nimble = "0.12.0"
 
 [build-dependencies]
 embuild = "0.33"
