@@ -8,6 +8,7 @@ use esp_idf_svc::hal::units::KiloHertz;
 use esp_idf_svc::nvs::{EspDefaultNvsPartition, EspNvs};
 
 mod aht;
+mod bluetooth;
 mod gas;
 
 fn main() -> anyhow::Result<()> {
@@ -55,16 +56,34 @@ fn main() -> anyhow::Result<()> {
     aht10.reset();
     aht10.init()?;
 
+    log::info!("Initializing BLE stack");
+    let sensor_chara = bluetooth::init_ble()?;
+
     loop {
-        FreeRtos::delay_ms(500);
+        FreeRtos::delay_ms(1000);
         let aht10_reading = aht10.read()?;
         let mq135_reading = gas::perform_reading(&adc, &mut mq135_pin, r0)?;
 
-        log::info!(
-            "Raw Gas: {:?} | T: {:.2} C | H: {:.2} %RH",
-            mq135_reading,
+        let render_string = format!(
+            "T: {:.2} C | H: {:.2} %RH | H2: {:.2} ppm | NH3: {:.2} ppm | Toluene: {:.2} ppm\n",
             aht10_reading.temperature,
-            aht10_reading.humidity
+            aht10_reading.humidity,
+            mq135_reading.h2,
+            mq135_reading.nh3,
+            mq135_reading.toluene
         );
+
+        log::info!(
+            "T: {:.2} C | H: {:.2} %RH | H2: {:.2} ppm | NH3: {:.2} ppm | Toluene: {:.2} ppm",
+            aht10_reading.temperature,
+            aht10_reading.humidity,
+            mq135_reading.h2,
+            mq135_reading.nh3,
+            mq135_reading.toluene
+        );
+
+        let mut sc_lock = sensor_chara.lock();
+        sc_lock.set_value(render_string.as_bytes());
+        sc_lock.notify();
     }
 }
