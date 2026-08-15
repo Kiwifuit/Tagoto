@@ -1,9 +1,13 @@
+use esp_idf_svc::hal::adc::attenuation::DB_12;
+use esp_idf_svc::hal::adc::oneshot::config::AdcChannelConfig;
+use esp_idf_svc::hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
 use esp_idf_svc::hal::delay::FreeRtos;
 use esp_idf_svc::hal::i2c::{I2cConfig, I2cDriver};
 use esp_idf_svc::hal::peripherals::Peripherals;
 use esp_idf_svc::hal::units::KiloHertz;
 
 mod aht;
+mod gas;
 
 fn main() -> anyhow::Result<()> {
     // It is necessary to call this function once. Otherwise, some patches to the runtime
@@ -14,6 +18,17 @@ fn main() -> anyhow::Result<()> {
     esp_idf_svc::log::EspLogger::initialize_default();
 
     let peripherals = Peripherals::take()?;
+
+    log::info!("Initializing ADC device");
+    let adc = AdcDriver::new(peripherals.adc1)?;
+    let adc_config = AdcChannelConfig {
+        attenuation: DB_12,
+        calibration: esp_idf_svc::hal::adc::oneshot::config::Calibration::Curve,
+        ..Default::default()
+    };
+
+    let mut mq135_pin = AdcChannelDriver::new(&adc, peripherals.pins.gpio0, &adc_config)?;
+    let mut mq9_pin = AdcChannelDriver::new(&adc, peripherals.pins.gpio1, &adc_config)?;
 
     log::info!("Initializing I2C device!");
     let i2c_config = I2cConfig::default().baudrate(KiloHertz(50).into());
