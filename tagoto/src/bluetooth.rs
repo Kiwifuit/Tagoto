@@ -2,8 +2,12 @@ use std::sync::Arc;
 
 use esp32_nimble::utilities::mutex::Mutex;
 use esp32_nimble::{
-    enums::{AuthReq, SecurityIOCap},
-    uuid128, BLEAdvertisementData, BLECharacteristic, BLEDevice, NimbleProperties,
+    // enums::{AuthReq, SecurityIOCap},
+    uuid128,
+    BLEAdvertisementData,
+    BLECharacteristic,
+    BLEDevice,
+    NimbleProperties,
 };
 
 const BLE_PIN: u32 = 800815;
