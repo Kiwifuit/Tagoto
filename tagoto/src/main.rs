@@ -16,6 +16,7 @@ use zerocopy::Ref;
 mod aht;
 mod bluetooth;
 mod gas;
+mod wifi;
 
 static DEFAULT_PMS_BYTES: LazyLock<[u8; core::mem::size_of::<Pms7003DataFrame>()]> =
     LazyLock::new(|| {
