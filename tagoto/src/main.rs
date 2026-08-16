@@ -13,10 +13,23 @@ use pms7003_rs::{Pms7003Controller, Pms7003DataFrame};
 use std::sync::LazyLock;
 use zerocopy::Ref;
 
+use crate::wifi::WifiCredentials;
+
 mod aht;
 mod bluetooth;
 mod gas;
 mod wifi;
+
+const KNOWN_NETWORKS: [WifiCredentials; 2] = [
+    WifiCredentials {
+        ssid: "DITO_64340_WoWFi",
+        passwd: "eegc3apre4b",
+    },
+    WifiCredentials {
+        ssid: "電音部::マヤ",
+        passwd: "borgor@192.168.1.4:/etc/passwd",
+    },
+];
 
 static DEFAULT_PMS_BYTES: LazyLock<[u8; core::mem::size_of::<Pms7003DataFrame>()]> =
     LazyLock::new(|| {
