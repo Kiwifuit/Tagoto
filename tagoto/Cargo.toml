@@ -25,6 +25,8 @@ embassy-time = { version = "0.5", features = ["generic-queue-8"] }
 anyhow = "1.0.104"
 embedded-hal = "1.0.0"
 esp32-nimble = "0.12.0"
+pms7003-rs = { git = "ssh://git@github.com/PjSWhite/pms7003-rs.git", ref = "40f652b", features = ["embedded-impl"] }
+zerocopy = "0.8.56"
 
 [build-dependencies]
 embuild = "0.33"
