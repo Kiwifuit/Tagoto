@@ -62,8 +62,6 @@ impl<I2C: I2c, Delay: DelayNs> Aht10Controller<I2C, Delay> {
                         self.delay.delay_ms(500);
                         continue;
                     }
-
-                    log::info!("Data: {:?}", self.response);
                     break;
                 }
                 Err(e) => log::error!("Error: {:?}", e),
