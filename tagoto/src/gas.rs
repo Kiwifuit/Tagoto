@@ -1,4 +1,6 @@
+use embedded_hal::delay::DelayNs;
 use esp_idf_svc::hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
+use esp_idf_svc::hal::delay::FreeRtos;
 use esp_idf_svc::nvs::{EspNvs, NvsDefault};
 
 const R1: f32 = 100_000.0;
@@ -47,8 +49,15 @@ fn read_averaged<'a>(
         &AdcDriver<'a, esp_idf_svc::hal::adc::ADCU1>,
     >,
     samples: u8,
+    delay: &mut FreeRtos,
 ) -> u16 {
-    let sum: u32 = (0..samples).map(|_| adc.read(pin).unwrap() as u32).sum();
+    let sum: u32 = (0..samples)
+        .map(|_| {
+            let reading = adc.read(pin).unwrap() as u32;
+            delay.delay_ms(5);
+            reading
+        })
+        .sum();
     (sum / samples as u32) as u16
 }
 
@@ -73,6 +82,7 @@ pub fn get_or_calibrate_r0<'a>(
         &AdcDriver<'a, esp_idf_svc::hal::adc::ADCU1>,
     >,
     nvs: &mut EspNvs<NvsDefault>,
+    delay: &mut FreeRtos,
 ) -> anyhow::Result<f32> {
     if let Some(r0) = load_r0(nvs) {
         return Ok(r0); // already calibrated on a previous boot — just reuse it
@@ -80,7 +90,7 @@ pub fn get_or_calibrate_r0<'a>(
 
     // No stored value yet — this must be a fresh calibration in clean air.
     log::info!("Calibrating sensor to determine R0");
-    let mv = read_averaged(adc, pin, 10);
+    let mv = read_averaged(adc, pin, 10, delay);
     let vout = undivide(mv);
     let r0 = calc_rs(vout);
 
@@ -96,8 +106,9 @@ pub fn perform_reading<'a>(
         &AdcDriver<'a, esp_idf_svc::hal::adc::ADCU1>,
     >,
     r0: f32,
+    delay: &mut FreeRtos,
 ) -> anyhow::Result<GasReading> {
-    let mv = read_averaged(adc, pin, 10);
+    let mv = read_averaged(adc, pin, 16, delay);
     let vout = undivide(mv);
     let rs = calc_rs(vout);
     let ratio = rs / r0;

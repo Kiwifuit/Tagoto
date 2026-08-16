@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     let mut mq135_pin = AdcChannelDriver::new(&adc, peripherals.pins.gpio0, &adc_config)?;
 
     log::info!("Initializing MQ-135 sensor");
-    let r0 = gas::get_or_calibrate_r0(&adc, &mut mq135_pin, &mut nvs_config)?;
+    let r0 = gas::get_or_calibrate_r0(&adc, &mut mq135_pin, &mut nvs_config, &mut FreeRtos)?;
 
     log::info!("Initializing I2C device!");
     let i2c_config = I2cConfig::default().baudrate(KiloHertz(50).into());
@@ -62,7 +62,7 @@ fn main() -> anyhow::Result<()> {
     loop {
         FreeRtos::delay_ms(1000);
         let aht10_reading = aht10.read()?;
-        let mq135_reading = gas::perform_reading(&adc, &mut mq135_pin, r0)?;
+        let mq135_reading = gas::perform_reading(&adc, &mut mq135_pin, r0, &mut FreeRtos)?;
 
         let render_string = format!(
             "T: {:.2} C | H: {:.2} %RH | H2: {:.2} ppm | NH3: {:.2} ppm | Toluene: {:.2} ppm\n",
